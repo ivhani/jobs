@@ -1,53 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Job Links</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <title>Job Links · Curated Sites</title>
+  <meta name="description" content="Curated list of useful job links. Fast, searchable, mobile‑friendly." />
+  <meta property="og:title" content="Job Links · Curated Sites" />
+  <meta property="og:description" content="Curated list of useful job links. Fast, searchable, mobile‑friendly." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Ctext y='0.9em' font-size='200'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
+
+  <!-- Tailwind CDN (no build step needed) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a'
+            }
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(2,6,23,0.08)'
+          }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+  <style>
+    [data-animate] {opacity:0; transform: translateY(6px);}
+    [data-animate].in {opacity:1; transform:none; transition: all .45s cubic-bezier(.2,.7,.2,1)}
+  </style>
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <a class="navbar-brand" href="#">Job Links</a>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
+  <header class="sticky top-0 z-50 backdrop-blur bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/60 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200 shadow-soft">💼</span>
+        <div>
+          <h1 class="text-lg font-semibold leading-tight">Job Links</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 -mt-0.5">Curated links · fast search · no fluff</p>
+        </div>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button id="themeBtn" class="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Toggle dark mode">🌙</button>
+        <button id="copyBtn" class="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Copy page link">🔗</button>
+      </div>
     </div>
-  </nav>
-  <main class="container my-5" id="content"></main>
-  <footer class="text-center text-muted py-4">Updated for a modern responsive design</footer>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <section class="grid gap-3 md:grid-cols-12" data-animate>
+      <div class="md:col-span-6">
+        <label for="q" class="sr-only">Search</label>
+        <input id="q" placeholder="Search title or category…" class="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/60 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400 shadow-soft" />
+      </div>
+    </section>
+
+    <section id="tags" class="mt-4 flex flex-wrap gap-2" data-animate></section>
+
+    <div class="mt-6 flex items-center justify-between" data-animate>
+      <p id="resultCount" class="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
+      <button id="clearFilters" class="text-sm text-brand-700 dark:text-brand-300 hover:underline hidden">Clear filters</button>
+    </div>
+
+    <section id="list" class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-animate></section>
+
+    <template id="emptyTpl">
+      <div class="col-span-full text-center py-20 text-slate-500 dark:text-slate-400">
+        <div class="text-5xl mb-4">🔍</div>
+        <p class="font-medium">No matching links.</p>
+        <p class="text-sm">Try clearing filters or changing your search.</p>
+      </div>
+    </template>
+
+    <template id="cardTpl">
+      <article class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-800/60 p-4 shadow-soft hover:shadow-lg transition">
+        <div class="flex items-start gap-3">
+          <div class="h-12 w-12 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-700 grid place-items-center text-xl">🏢</div>
+          <div class="min-w-0 flex-1">
+            <h3 class="font-semibold leading-tight truncate card-title"></h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 truncate card-category"></p>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <div class="text-xs text-slate-500 dark:text-slate-400"></div>
+          <a class="applyBtn inline-flex items-center gap-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm px-3 py-2" target="_blank" rel="noopener">Visit <span aria-hidden>↗</span></a>
+        </div>
+      </article>
+    </template>
+  </main>
+
+  <footer class="mt-10 border-t border-slate-200 dark:border-slate-800 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+    <p>Built with ❤️ · <a class="underline hover:no-underline" href="https://github.com/ivhani/jobs" target="_blank" rel="noopener">Edit on GitHub</a></p>
+  </footer>
+
   <script src="data.js"></script>
   <script>
-  const content=document.getElementById('content');
-  const row=document.createElement('div');
-  row.className='row';
-  jobData.forEach(section=>{
-    const col=document.createElement('div');
-    col.className='col-md-6 mb-4';
-    const card=document.createElement('div');
-    card.className='card h-100';
-    const cardBody=document.createElement('div');
-    cardBody.className='card-body';
-    const h2=document.createElement('h2');
-    h2.className='h5 card-title';
-    h2.textContent=section.name;
-    const ul=document.createElement('ul');
-    ul.className='list-unstyled';
-    section.items.forEach(item=>{
-      const li=document.createElement('li');
-      const a=document.createElement('a');
-      a.href=item.url;
-      a.textContent=item.title;
-      a.target='_blank';
-      li.appendChild(a);
-      ul.appendChild(li);
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    // Transform data.js structure into a flat list
+    const JOBS = jobData.flatMap(section =>
+      section.items.map(item => ({
+        title: item.title,
+        url: item.url,
+        category: section.name
+      }))
+    );
+
+    const categories = [...new Set(JOBS.map(j => j.category))].sort();
+
+    const state = { q: '', tag: '' };
+
+    const listEl = $('#list');
+    const cardTpl = $('#cardTpl');
+    const emptyTpl = $('#emptyTpl');
+    const resultCount = $('#resultCount');
+    const clearBtn = $('#clearFilters');
+    const tagsEl = $('#tags');
+
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.textContent = cat;
+      btn.dataset.tag = cat;
+      btn.className = 'tag px-3 py-1.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800';
+      btn.addEventListener('click', () => {
+        if (state.tag === cat) { state.tag = ''; btn.classList.remove('bg-slate-100','dark:bg-slate-800'); }
+        else {
+          state.tag = cat;
+          $$('.tag').forEach(b => b.classList.remove('bg-slate-100','dark:bg-slate-800'));
+          btn.classList.add('bg-slate-100','dark:bg-slate-800');
+        }
+        render(JOBS);
+      });
+      tagsEl.appendChild(btn);
     });
-    cardBody.appendChild(h2);
-    cardBody.appendChild(ul);
-    card.appendChild(cardBody);
-    col.appendChild(card);
-    row.appendChild(col);
-  });
-  content.appendChild(row);
+
+    function applyFilters(items) {
+      const q = state.q.trim().toLowerCase();
+      return items.filter(it => {
+        const text = `${it.title} ${it.category}`.toLowerCase();
+        const matchQ = !q || text.includes(q);
+        const matchTag = !state.tag || it.category === state.tag;
+        return matchQ && matchTag;
+      });
+    }
+
+    function render(items) {
+      listEl.innerHTML = '';
+      const filtered = applyFilters(items);
+
+      if (filtered.length === 0) {
+        listEl.append(emptyTpl.content.cloneNode(true));
+      } else {
+        filtered.forEach(it => listEl.append(renderCard(it)));
+      }
+
+      const filtersActive = state.q || state.tag;
+      clearBtn.classList.toggle('hidden', !filtersActive);
+      resultCount.textContent = `${filtered.length} link${filtered.length!==1?'s':''} shown`;
+      requestAnimationFrame(()=>$$('[data-animate]').forEach(n=>n.classList.add('in')));
+    }
+
+    function renderCard(it) {
+      const node = cardTpl.content.cloneNode(true);
+      $('.card-title', node).textContent = it.title;
+      $('.card-category', node).textContent = it.category;
+      const a = $('.applyBtn', node);
+      a.href = it.url;
+      a.setAttribute('aria-label', `Open ${it.title}`);
+      return node;
+    }
+
+    $('#q').addEventListener('input', e=>{ state.q = e.target.value; render(JOBS); });
+
+    clearBtn.addEventListener('click', () => {
+      state.q = ''; state.tag = '';
+      $('#q').value = '';
+      $$('.tag').forEach(b=>b.classList.remove('bg-slate-100','dark:bg-slate-800'));
+      render(JOBS);
+    });
+
+    const themeBtn = $('#themeBtn');
+    function setTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('theme', dark?'dark':'light');
+      themeBtn.textContent = dark ? '☀️' : '🌙';
+    }
+    setTheme(localStorage.getItem('theme') === 'dark');
+    themeBtn.addEventListener('click', () => setTheme(!document.documentElement.classList.contains('dark')));
+
+    $('#copyBtn').addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(location.href);
+        const orig = document.activeElement.textContent;
+        document.activeElement.textContent = 'Copied!';
+        setTimeout(()=> document.activeElement.textContent = orig, 1200);
+      } catch {}
+    });
+
+    render(JOBS);
   </script>
 </body>
 </html>
