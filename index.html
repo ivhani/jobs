@@ -35,6 +35,7 @@
   <style>
     [data-animate] {opacity:0; transform: translateY(6px);}
     [data-animate].in {opacity:1; transform:none; transition: all .45s cubic-bezier(.2,.7,.2,1)}
+    #list.auto-grid {grid-template-columns: repeat(auto-fill,minmax(260px,1fr));}
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
@@ -49,6 +50,7 @@
       </div>
       <div class="ml-auto flex items-center gap-2">
         <button id="themeBtn" class="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Toggle dark mode">🌙</button>
+        <button id="viewBtn" class="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Toggle view">🔳</button>
         <button id="copyBtn" class="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Copy page link">🔗</button>
       </div>
     </div>
@@ -69,7 +71,7 @@
       <button id="clearFilters" class="text-sm text-brand-700 dark:text-brand-300 hover:underline hidden">Clear filters</button>
     </div>
 
-    <section id="list" class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-animate></section>
+    <section id="list" class="mt-4 grid gap-4 auto-grid" data-animate></section>
 
     <template id="emptyTpl">
       <div class="col-span-full text-center py-20 text-slate-500 dark:text-slate-400">
@@ -80,19 +82,19 @@
     </template>
 
     <template id="cardTpl">
-      <article class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-800/60 p-4 shadow-soft hover:shadow-lg transition">
+      <a class="card block rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-800/60 p-4 shadow-soft hover:shadow-lg transition" target="_blank" rel="noopener">
         <div class="flex items-start gap-3">
           <div class="h-12 w-12 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-700 grid place-items-center text-xl">🏢</div>
           <div class="min-w-0 flex-1">
-            <h3 class="font-semibold leading-tight truncate card-title"></h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 truncate card-category"></p>
+            <h3 class="font-semibold leading-tight break-words text-sm sm:text-base card-title"></h3>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 break-words card-category"></p>
           </div>
         </div>
         <div class="mt-4 flex items-center justify-between">
           <div class="text-xs text-slate-500 dark:text-slate-400"></div>
-          <a class="applyBtn inline-flex items-center gap-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm px-3 py-2" target="_blank" rel="noopener">Visit <span aria-hidden>↗</span></a>
+          <span class="inline-flex items-center gap-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm px-3 py-2">Visit <span aria-hidden>↗</span></span>
         </div>
-      </article>
+      </a>
     </template>
   </main>
 
@@ -116,7 +118,7 @@
 
     const categories = [...new Set(JOBS.map(j => j.category))].sort();
 
-    const state = { q: '', tag: '' };
+    const state = { q: '', tag: '', view: 'tiles' };
 
     const listEl = $('#list');
     const cardTpl = $('#cardTpl');
@@ -124,6 +126,7 @@
     const resultCount = $('#resultCount');
     const clearBtn = $('#clearFilters');
     const tagsEl = $('#tags');
+    const viewBtn = $('#viewBtn');
 
     categories.forEach(cat => {
       const btn = document.createElement('button');
@@ -156,6 +159,9 @@
       listEl.innerHTML = '';
       const filtered = applyFilters(items);
 
+      if (state.view === 'list') listEl.className = 'mt-4 flex flex-col gap-4';
+      else listEl.className = 'mt-4 grid gap-4 auto-grid';
+
       if (filtered.length === 0) {
         listEl.append(emptyTpl.content.cloneNode(true));
       } else {
@@ -170,11 +176,11 @@
 
     function renderCard(it) {
       const node = cardTpl.content.cloneNode(true);
+      const card = $('.card', node);
       $('.card-title', node).textContent = it.title;
       $('.card-category', node).textContent = it.category;
-      const a = $('.applyBtn', node);
-      a.href = it.url;
-      a.setAttribute('aria-label', `Open ${it.title}`);
+      card.href = it.url;
+      card.setAttribute('aria-label', `Open ${it.title}`);
       return node;
     }
 
@@ -184,6 +190,12 @@
       state.q = ''; state.tag = '';
       $('#q').value = '';
       $$('.tag').forEach(b=>b.classList.remove('bg-slate-100','dark:bg-slate-800'));
+      render(JOBS);
+    });
+
+    viewBtn.addEventListener('click', () => {
+      state.view = state.view === 'tiles' ? 'list' : 'tiles';
+      viewBtn.textContent = state.view === 'tiles' ? '🔳' : '📋';
       render(JOBS);
     });
 
